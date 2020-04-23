@@ -9,26 +9,39 @@ class ApplicationController < Sinatra::Base
 	end
 
 	get "/" do
-		erb :index
+		erb :index #signup or login page
 	end
 
-	get "/signup" do
+	get "/signup" do #form to create a new user
 		erb :signup
 	end
 
 	post "/signup" do
-		#your code here!
+		  user = User.new(:username => params[:username], :password => params[:password])
+			#creating instance of our user
+			if user.save
+    redirect "/login"
+  else
+    redirect "/failure"
+  end
 	end
 
-	get "/login" do
+	get "/login" do #form for logging in
 		erb :login
 	end
 
-	post "/login" do
-		#your code here!
-	end
+  post "/login" do
+    user = User.find_by(:username => params[:username])
 
-	get "/success" do
+    if user && user.authenticate(params[:password]) #asking us if we have a user and if the user is authenticated
+      session[:user_id] = user.id
+      redirect "/success"
+    else
+      redirect "/failure"
+    end
+  end
+
+	get "/success" do #displayed once user succesfully logs in
 		if logged_in?
 			erb :success
 		else
@@ -36,11 +49,11 @@ class ApplicationController < Sinatra::Base
 		end
 	end
 
-	get "/failure" do
+	get "/failure" do #login error
 		erb :failure
 	end
 
-	get "/logout" do
+	get "/logout" do #clears session and redirects to home page or login page
 		session.clear
 		redirect "/"
 	end
